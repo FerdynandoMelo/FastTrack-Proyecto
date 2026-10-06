@@ -1,0 +1,26 @@
+CREATE OR REPLACE TRIGGER TRG_ACTUALIZAR_REPUTACION_Y_PUNTOS
+AFTER INSERT ON VALORACION
+FOR EACH ROW
+DECLARE
+    v_nuevo_promedio NUMBER(3,2);
+    v_total_resenas NUMBER;
+    v_puntos_bono CONSTANT NUMBER := 50;
+BEGIN
+    -- 1. Recalcular promedio y cantidad de opiniones del local
+    SELECT AVG(puntuacion), COUNT(*)
+    INTO v_nuevo_promedio, v_total_resenas
+    FROM VALORACION
+    WHERE id_local = :NEW.id_local;
+
+    -- 2. Actualizar las métricas en la tabla del local
+    UPDATE LOCAL
+    SET promedio_calificacion = ROUND(v_nuevo_promedio, 2),
+        total_resenas = v_total_resenas
+    WHERE id_local = :NEW.id_local;
+
+    -- 3. Bonificar puntos al cliente por emitir retroalimentación
+    UPDATE USUARIO
+    SET puntos_acumulados = puntos_acumulados + v_puntos_bono
+    WHERE id_usuario = :NEW.id_usuario;
+END;
+/

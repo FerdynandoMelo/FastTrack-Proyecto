@@ -1,0 +1,46 @@
+CREATE OR REPLACE PROCEDURE SP_CANJEAR_CUPON (
+    p_id_usuario IN NUMBER,
+    p_id_local IN NUMBER,
+    p_puntos_costo IN NUMBER,
+    p_descuento IN NUMBER,
+    p_codigo_generado OUT VARCHAR2,
+    p_resultado OUT VARCHAR2
+)
+IS
+    v_puntos_actuales NUMBER;
+BEGIN
+    -- Bloqueo pesimista para evitar condiciones de carrera en saldo de puntos
+    SELECT puntos_acumulados INTO v_puntos_actuales
+    FROM USUARIO
+    WHERE id_usuario = p_id_usuario
+    FOR UPDATE;
+
+    IF v_puntos_actuales >= p_puntos_costo THEN
+        -- Descontar el saldo de puntos
+        UPDATE USUARIO
+        SET puntos_acumulados = puntos_acumulados - p_puntos_costo
+        WHERE id_usuario = p_id_usuario;
+
+        -- Generar código único para el cupón
+        p_codigo_generado := 'FT-' || TO_CHAR(SYSDATE, 'YYYYMMDD') || '-' || DBMS_RANDOM.STRING('X', 4);
+
+        -- Registrar cupón generado
+        INSERT INTO CUPON_CANJE (
+            id_usuario, id_local, codigo_cupon, puntos_canjeados, descuento_porcentaje, estado_cupon
+        ) VALUES (
+            p_id_usuario, p_id_local, p_codigo_generado, p_puntos_costo, p_descuento, 'EMITIDO'
+        );
+
+        COMMIT;
+        p_resultado := 'TRANSACCION_EXITOSA';
+    ELSE
+        p_codigo_generado := NULL;
+        p_resultado := 'PUNTOS_INSUFICIENTES';
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_codigo_generado := NULL;
+        p_resultado := 'ERROR_INTERNO: ' || SQLERRM;
+END;
+/

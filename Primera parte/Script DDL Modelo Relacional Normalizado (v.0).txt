@@ -1,0 +1,76 @@
+-- 1. TABLA ROLES
+CREATE TABLE ROL (
+    id_rol NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre_rol VARCHAR2(30) NOT NULL UNIQUE
+);
+
+-- 2. TABLA USUARIOS
+CREATE TABLE USUARIO (
+    id_usuario NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_rol NUMBER NOT NULL,
+    nombre_completo VARCHAR2(100) NOT NULL,
+    email VARCHAR2(120) NOT NULL UNIQUE,
+    password_hash VARCHAR2(255) NOT NULL,
+    puntos_acumulados NUMBER DEFAULT 0,
+    fecha_registro DATE DEFAULT SYSDATE,
+    CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES ROL(id_rol)
+);
+
+-- 3. TABLA LOCALES
+CREATE TABLE LOCAL (
+    id_local NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_administrador NUMBER NOT NULL,
+    nombre_local VARCHAR2(100) NOT NULL,
+    direccion VARCHAR2(150) NOT NULL,
+    latitud NUMBER(10, 7) NOT NULL,
+    longitud NUMBER(10, 7) NOT NULL,
+    estado_live CHAR(1) DEFAULT 'C' CHECK (estado_live IN ('A', 'C')), -- 'A': Abierto, 'C': Cerrado
+    promedio_calificacion NUMBER(3, 2) DEFAULT 0.00,
+    total_resenas NUMBER DEFAULT 0,
+    CONSTRAINT fk_local_admin FOREIGN KEY (id_administrador) REFERENCES USUARIO(id_usuario)
+);
+
+-- 4. TABLA CATEGORIAS PRODUCTO
+CREATE TABLE CATEGORIA_PRODUCTO (
+    id_categoria NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre_categoria VARCHAR2(50) NOT NULL
+);
+
+-- 5. TABLA PRODUCTOS
+CREATE TABLE PRODUCTO (
+    id_producto NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_local NUMBER NOT NULL,
+    id_categoria NUMBER NOT NULL,
+    nombre_producto VARCHAR2(100) NOT NULL,
+    descripcion VARCHAR2(250),
+    precio NUMBER(8) NOT NULL,
+    disponible CHAR(1) DEFAULT 'S' CHECK (disponible IN ('S', 'N')),
+    CONSTRAINT fk_prod_local FOREIGN KEY (id_local) REFERENCES LOCAL(id_local),
+    CONSTRAINT fk_prod_cat FOREIGN KEY (id_categoria) REFERENCES CATEGORIA_PRODUCTO(id_categoria)
+);
+
+-- 6. TABLA VALORACIONES Y RESEÑAS
+CREATE TABLE VALORACION (
+    id_valoracion NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_local NUMBER NOT NULL,
+    id_usuario NUMBER NOT NULL,
+    puntuacion NUMBER(1) CHECK (puntuacion BETWEEN 1 AND 5),
+    comentario VARCHAR2(500) NOT NULL,
+    fecha_valoracion DATE DEFAULT SYSDATE,
+    CONSTRAINT fk_val_local FOREIGN KEY (id_local) REFERENCES LOCAL(id_local),
+    CONSTRAINT fk_val_usuario FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario)
+);
+
+-- 7. TABLA CUPONES Y CANJES
+CREATE TABLE CUPON_CANJE (
+    id_cupon NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_usuario NUMBER NOT NULL,
+    id_local NUMBER NOT NULL,
+    codigo_cupon VARCHAR2(20) NOT NULL UNIQUE,
+    puntos_canjeados NUMBER NOT NULL,
+    descuento_porcentaje NUMBER(3) NOT NULL,
+    estado_cupon VARCHAR2(20) DEFAULT 'EMITIDO' CHECK (estado_cupon IN ('EMITIDO', 'UTILIZADO', 'EXPIRADO')),
+    fecha_emision DATE DEFAULT SYSDATE,
+    CONSTRAINT fk_cup_usuario FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario),
+    CONSTRAINT fk_cup_local FOREIGN KEY (id_local) REFERENCES LOCAL(id_local)
+);

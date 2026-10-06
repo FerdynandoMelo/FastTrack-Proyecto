@@ -1,0 +1,68 @@
+-- Creación de la base de datos relacional FastTrack
+-- Asegurar la integridad de perfiles, locales, productos, valoraciones y cupones
+
+CREATE TABLE ROL (
+    id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_rol TEXT NOT NULL UNIQUE CHECK (nombre_rol IN ('Cliente', 'Locatario', 'Administrador'))
+);
+
+CREATE TABLE USUARIO (
+    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_completo TEXT NOT NULL,
+    correo TEXT NOT NULL UNIQUE,
+    contrasena_hash TEXT NOT NULL,
+    rol_id INTEGER NOT NULL,
+    puntos_saldo INTEGER DEFAULT 0 CHECK (puntos_saldo >= 0),
+    FOREIGN KEY (rol_id) REFERENCES ROL(id_rol) ON DELETE RESTRICT
+);
+
+CREATE TABLE LOCAL (
+    id_local INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_comercial TEXT NOT NULL,
+    direccion_fisica TEXT NOT NULL,
+    latitud REAL NOT NULL CHECK (latitud BETWEEN -90 AND 90),
+    longitud REAL NOT NULL CHECK (longitud BETWEEN -180 AND 180),
+    estado_live TEXT NOT NULL DEFAULT 'Cerrado' CHECK (estado_live IN ('Abierto', 'Cerrado')),
+    usuario_locatario_id INTEGER NOT NULL,
+    FOREIGN KEY (usuario_locatario_id) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
+);
+
+CREATE TABLE CATEGORIA_PRODUCTO (
+    id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_categoria TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE PRODUCTO (
+    id_producto INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_producto TEXT NOT NULL,
+    descripcion_breve TEXT,
+    precio INTEGER NOT NULL CHECK (precio >= 0),
+    disponibilidad_stock INTEGER DEFAULT 1 CHECK (disponibilidad_stock IN (0, 1)), -- 0: Agotado, 1: Disponible
+    categoria_id INTEGER NOT NULL,
+    local_id INTEGER NOT NULL,
+    FOREIGN KEY (categoria_id) REFERENCES CATEGORIA_PRODUCTO(id_categoria) ON DELETE RESTRICT,
+    FOREIGN KEY (local_id) REFERENCES LOCAL(id_local) ON DELETE CASCADE
+);
+
+CREATE TABLE VALORACION (
+    id_valoracion INTEGER PRIMARY KEY AUTOINCREMENT,
+    estrellas INTEGER NOT NULL CHECK (estrellas BETWEEN 1 AND 5),
+    comentario TEXT NOT NULL CHECK (length(comentario) >= 10),
+    fecha_registro TEXT DEFAULT (datetime('now', 'localtime')),
+    usuario_id INTEGER NOT NULL,
+    local_id INTEGER NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (local_id) REFERENCES LOCAL(id_local) ON DELETE CASCADE
+);
+
+CREATE TABLE CUPON_CANJE (
+    id_cupon INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo_unico TEXT NOT NULL UNIQUE,
+    costo_puntos INTEGER NOT NULL CHECK (costo_puntos > 0),
+    estado_cupon TEXT NOT NULL DEFAULT 'EMITIDO' CHECK (estado_cupon IN ('EMITIDO', 'UTILIZADO')),
+    fecha_canje TEXT DEFAULT (datetime('now', 'localtime')),
+    usuario_id INTEGER NOT NULL,
+    local_id INTEGER NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (local_id) REFERENCES LOCAL(id_local) ON DELETE CASCADE
+);
