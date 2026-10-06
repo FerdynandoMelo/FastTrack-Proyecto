@@ -1,5 +1,5 @@
 # FastTrack - Plataforma Gastronómica Hiperlocal en Tiempo Real
-**Asignatura:** Portafolio de Título (PTY4479)  
+**Asignatura:** Portafolio de Título
 **Institución:** Duoc UC  
 **Autor / Desarrollador:** Ferdynando Melo  
 **Fecha de Cierre:** 05 de octubre de 2026 (Semana 8)  
@@ -7,13 +7,13 @@
 
 ---
 
-## 📌 Descripción del Proyecto
+## Descripción del Proyecto
 
 **FastTrack** es una solución multiplataforma orientada al rubro gastronómico de comida rápida y al paso. Su objetivo principal es resolver la incertidumbre de atención mediante un indicador operativo en tiempo real (**Live Status** conmutado por la cocina), georreferenciación interactiva en mapa (Leaflet API), cartas digitales dinámicas con control de inventario y un motor de gamificación comunitaria basado en calificaciones y canje transaccional de cupones de descuento.
 
 ---
 
-## 📁 Estructura del Entregable y Organización de Archivos
+## Estructura del Entregable y Organización de Archivos
 
 El presente directorio consolida la documentación metodológica, técnica, esquemas relacionales, métricas en hojas de cálculo y la presentación ejecutiva del proyecto:
 
@@ -62,7 +62,7 @@ El presente directorio consolida la documentación metodológica, técnica, esqu
 
 ---
 
-## 🛠️️ Tecnologías Empleadas
+## Tecnologías Empleadas
 
 * **Frontend:** Ionic Framework, Angular, TypeScript, SCSS, HTML5.
 * **Componentes de Mapa:** Leaflet API, OpenStreetMap.
